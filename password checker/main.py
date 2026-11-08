@@ -35,7 +35,7 @@ root = tk.Tk()
 root.title("Password Checker")
 
 #setting the dimentions of the GUI window
-root.geometry("600x800")
+root.geometry("600x600")
 
 #adding a label to the GUI window that prompts the user to enter a password
 lable = tk.Label(root, text="Enter a password", font=("Arial", 30))
@@ -48,7 +48,55 @@ textbox.place(x=150, y=100, width=300, height=50)
 output_box = tk.Text(root, font=("Arial", 10), height=10, width=90)
 output_box.place(x=0, y=300)
 
+save_pass_var = tk.IntVar()
+save_pass = tk.Checkbutton(root,variable=save_pass_var, onvalue=1, offvalue=0, text="Save Password", font=("Arial", 30))
+save_pass.place(x=250, y=500)
+
+min_digits = 12
+special_characters_list = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/']
+# Add your settings 
+def settings():
+    global min_digits_entry , current_settings , special_digits_entry
+    settings_window = tk.Toplevel(root)
+    settings_window.title("Settings")
+    settings_window.geometry("400x500")
+    settings_title = tk.Label(settings_window, text="Settings", font=("Arial", 30))
+    settings_title.place(x=10, y=10)
+    
+    min_digits_label = tk.Label(settings_window, text="Minimum Digits:", font=("Arial", 20))
+    min_digits_label.place(x=50, y=80)
+
+    min_digits_entry = tk.Entry(settings_window, font=("Arial", 20))
+    min_digits_entry.place(x=250, y=80, width=100, height=30)
+
+    special_digits_label = tk.Label(settings_window, text="Special Characters:", font=("Arial", 20))
+    special_digits_label.place(x=15, y=120)
+
+    special_digits_entry = tk.Entry(settings_window, font=("Arial", 20))
+    special_digits_entry.place(x=260, y=120, width=100, height=30)
+
+    current_settings = tk.Text(settings_window, font=("Arial", 10), height=8, width=60)
+    current_settings.place(x=0, y=200)
+
+    save_settings_button = tk.Button(settings_window, text="Save Settings", font=("Arial", 20), command=set_settings)
+    save_settings_button.place(x=100, y=350)
+
+def set_settings():
+    global min_digits , min_digits_entry , current_settings , special_digits_entry 
+    current_settings.delete("1.0", tk.END)  # Clear the current settings box before displaying new settings
+    try:
+        min_digits = int(min_digits_entry.get())
+        current_settings.insert(tk.END, f"Minimum Digits: {min_digits}\n")
+    except ValueError:
+        current_settings.insert(tk.END, "Invalid input for minimum digits. Please enter a valid integer.\n")
+    try:
+        special_characters = special_digits_entry.get()
+        special_characters_list.append(special_characters)
+        current_settings.insert(tk.END, f"Special Characters added: {special_characters}\n")
+    except ValueError:
+        current_settings.insert(tk.END, "Invalid input for special characters. Please enter valid characters.\n")
 def run():
+    global min_digits , special_characters
     pass_rate = 0
     common_advice = 0
     length_advice = 0
@@ -78,15 +126,14 @@ def run():
         else:
             pass_rate += 20
 
-        leanth = len(password)
+        length = len(password)
 
-        if leanth < 12:
+        if length < min_digits:
             length_advice = 1
         else:
             pass_rate += 20
 
-        special_characters = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', '|', '\\', ':', ';', '"', "'", '<', '>', ',', '.', '?', '/']
-        if any(char in special_characters for char in password):
+        if any(char in special_characters_list for char in password):
             pass_rate += 20
         else:
             special_advice += 1
@@ -108,6 +155,14 @@ def run():
         if capital_advice == 1:
             output_box.insert(tk.END, "Your password does not contain enough capital letters. Please choose a different password.\n")
 
+        if save_pass_var.get() == 1:
+            # Save the password to a file
+            with open("saved_passwords.txt", "a") as f:
+                f.write(password + "\n")
+            output_box.insert(tk.END, "Your password has been saved.\n")
+        else:
+            output_box.insert(tk.END, "Your password has not been saved.\n")
+
 
 
 
@@ -116,4 +171,6 @@ def run():
 button = tk.Button(root, text="Check Password", font=("Arial", 30), command=run)
 button.place(x=150, y=200)
 
+settings_button = tk.Button(root, text="Settings", font=("Arial", 30), command=settings)
+settings_button.place(x=50, y=500)
 root.mainloop()
